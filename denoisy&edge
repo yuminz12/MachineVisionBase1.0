@@ -1,0 +1,142 @@
+#去噪声演示图像
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+# 读取图像
+image = cv2.imread('xilinping.jpg')  # 替换为你的图像路径
+
+# 检查图像是否成功加载
+if image is None:
+    print("错误：无法读取图像，请检查文件路径")
+else:
+    # 将BGR图像转换为RGB（Matplotlib使用RGB）
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
+    # 设置滤波核大小（奇数）
+    kernel_size = 9
+    
+    # 1. 均值滤波
+    mean_blur = cv2.blur(image, (kernel_size, kernel_size))
+    mean_blur_rgb = cv2.cvtColor(mean_blur, cv2.COLOR_BGR2RGB)
+    
+    # 2. 高斯滤波
+    gaussian_blur = cv2.GaussianBlur(image, (kernel_size, kernel_size), 0)
+    gaussian_blur_rgb = cv2.cvtColor(gaussian_blur, cv2.COLOR_BGR2RGB)
+    
+    # 3. 中值滤波
+    median_blur = cv2.medianBlur(image, kernel_size)
+    median_blur_rgb = cv2.cvtColor(median_blur, cv2.COLOR_BGR2RGB)
+    
+    # 创建2x2的子图布局
+    plt.figure(figsize=(15, 12))
+    
+    # 显示原图
+    plt.subplot(2, 2, 1)
+    plt.imshow(image_rgb)
+    plt.title(f'orign\nsize: {image.shape[1]}x{image.shape[0]}')
+    plt.axis('off')
+    
+    # 显示均值滤波结果
+    plt.subplot(2, 2, 2)
+    plt.imshow(mean_blur_rgb)
+    plt.title(f'mean filter\n Coresize: {kernel_size}x{kernel_size}')
+    plt.axis('off')
+    
+    # 显示高斯滤波结果
+    plt.subplot(2, 2, 3)
+    plt.imshow(gaussian_blur_rgb)
+    plt.title(f'gaussian\n CoreSize: {kernel_size}x{kernel_size}')
+    plt.axis('off')
+    
+    # 显示中值滤波结果
+    plt.subplot(2, 2, 4)
+    plt.imshow(median_blur_rgb)
+    plt.title(f'median\nCoreSize: {kernel_size}x{kernel_size}')
+    plt.axis('off')
+    
+    # 调整子图间距
+    plt.tight_layout()
+    plt.show()
+
+    # 1. Roberts算子边缘检测
+    # 定义Roberts算子卷积核
+    kernel_roberts_x = np.array([[1, 0], 
+                                 [0, -1]], dtype=np.float32)
+    kernel_roberts_y = np.array([[0, 1], 
+                                 [-1, 0]], dtype=np.float32)
+    
+    # 应用卷积
+    roberts_x = cv2.filter2D(gray, cv2.CV_16S, kernel_roberts_x)
+    roberts_y = cv2.filter2D(gray, cv2.CV_16S, kernel_roberts_y)
+    
+    # 计算梯度幅值
+    roberts = cv2.convertScaleAbs(cv2.addWeighted(roberts_x, 0.5, roberts_y, 0.5, 0))
+    
+    # 2. Prewitt算子边缘检测
+    # 定义Prewitt算子卷积核
+    kernel_prewitt_x = np.array([[-1, 0, 1], 
+                                 [-1, 0, 1], 
+                                 [-1, 0, 1]], dtype=np.float32)
+    kernel_prewitt_y = np.array([[-1, -1, -1], 
+                                 [0, 0, 0], 
+                                 [1, 1, 1]], dtype=np.float32)
+    
+    # 应用卷积
+    prewitt_x = cv2.filter2D(gray, cv2.CV_16S, kernel_prewitt_x)
+    prewitt_y = cv2.filter2D(gray, cv2.CV_16S, kernel_prewitt_y)
+    
+    # 计算梯度幅值
+    prewitt = cv2.convertScaleAbs(cv2.addWeighted(prewitt_x, 0.5, prewitt_y, 0.5, 0))
+    
+    # 3. Sobel算子边缘检测（使用OpenCV内置函数）
+    sobel_x = cv2.Sobel(gray, cv2.CV_16S, 1, 0, ksize=3)
+    sobel_y = cv2.Sobel(gray, cv2.CV_16S, 0, 1, ksize=3)
+    sobel = cv2.convertScaleAbs(cv2.addWeighted(sobel_x, 0.5, sobel_y, 0.5, 0))
+    
+    # 4. Canny算子边缘检测（使用OpenCV内置函数）
+    # 应用高斯模糊减少噪声
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    # Canny边缘检测（阈值可调整）
+    canny = cv2.Canny(blurred, 50, 150)  # 低阈值50，高阈值150
+    
+    # 将原始BGR图像转换为RGB（Matplotlib使用RGB）
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
+    # 创建2x3的子图布局
+    plt.figure(figsize=(18, 12))
+    
+    # 显示原图
+    plt.subplot(2, 3, 1)
+    plt.imshow(image_rgb)
+    plt.title('Orignal')
+    plt.axis('off')
+    
+    # 显示Roberts边缘检测结果
+    plt.subplot(2, 3, 2)
+    plt.imshow(roberts, cmap='gray')
+    plt.title('Roberts')
+    plt.axis('off')
+    
+    # 显示Prewitt边缘检测结果
+    plt.subplot(2, 3, 3)
+    plt.imshow(prewitt, cmap='gray')
+    plt.title('Prewitt')
+    plt.axis('off')
+    
+    # 显示Sobel边缘检测结果
+    plt.subplot(2, 3, 4)
+    plt.imshow(sobel, cmap='gray')
+    plt.title('Sobel')
+    plt.axis('off')
+    
+    # 显示Canny边缘检测结果
+    plt.subplot(2, 3, 5)
+    plt.imshow(canny, cmap='gray')
+    plt.title('Canny (50, 150)')
+    plt.axis('off')
+    
+    # 调整子图间距
+    plt.tight_layout()
+    plt.show()
