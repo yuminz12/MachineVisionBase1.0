@@ -1,0 +1,61 @@
+#去噪声演示图像
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+# 读取图像
+image = cv2.imread('xilinping.jpg')  # 替换为你的图像路径
+
+# 检查图像是否成功加载
+if image is None:
+    print("错误：无法读取图像，请检查文件路径")
+else:
+    # 将BGR图像转换为RGB（Matplotlib使用RGB）
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
+    # 设置滤波核大小（奇数）
+    kernel_size = 9
+    
+    # 1. 均值滤波
+    mean_blur = cv2.blur(image, (kernel_size, kernel_size))
+    mean_blur_rgb = cv2.cvtColor(mean_blur, cv2.COLOR_BGR2RGB)
+    
+    # 2. 高斯滤波
+    gaussian_blur = cv2.GaussianBlur(image, (kernel_size, kernel_size), 0)
+    gaussian_blur_rgb = cv2.cvtColor(gaussian_blur, cv2.COLOR_BGR2RGB)
+    
+    # 3. 中值滤波
+    median_blur = cv2.medianBlur(image, kernel_size)
+    median_blur_rgb = cv2.cvtColor(median_blur, cv2.COLOR_BGR2RGB)
+    
+    # 创建2x2的子图布局
+    plt.figure(figsize=(15, 12))
+    
+    # 显示原图
+    plt.subplot(2, 2, 1)
+    plt.imshow(image_rgb)
+    plt.title(f'orign\nsize: {image.shape[1]}x{image.shape[0]}')
+    plt.axis('off')
+    
+    # 显示均值滤波结果
+    plt.subplot(2, 2, 2)
+    plt.imshow(mean_blur_rgb)
+    plt.title(f'mean filter\n Coresize: {kernel_size}x{kernel_size}')
+    plt.axis('off')
+    
+    # 显示高斯滤波结果
+    plt.subplot(2, 2, 3)
+    plt.imshow(gaussian_blur_rgb)
+    plt.title(f'gaussian\n CoreSize: {kernel_size}x{kernel_size}')
+    plt.axis('off')
+    
+    # 显示中值滤波结果
+    plt.subplot(2, 2, 4)
+    plt.imshow(median_blur_rgb)
+    plt.title(f'median\nCoreSize: {kernel_size}x{kernel_size}')
+    plt.axis('off')
+    
+    # 调整子图间距
+    plt.tight_layout()
+    plt.show()
