@@ -1,0 +1,80 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+# 读取图像
+image = cv2.imread('orangeNG.bmp')  # 钢筋截面
+
+# 检查图像是否成功加载
+if image is None:
+    print("错误：无法读取图像，请检查文件路径")
+else:
+    # 将BGR图像转换为RGB（Matplotlib使用RGB）
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
+    # 1. 均值灰度法：取RGB三个通道的平均值
+    gray_mean = np.mean(image, axis=2).astype(np.uint8)
+    
+    # 2. 加权灰度法：使用ITU-R BT.601标准加权系数
+    # 公式：Gray = 0.299*R + 0.587*G + 0.114*B
+    # 注意：OpenCV读取的图像是BGR顺序
+    b, g, r = cv2.split(image)
+    gray_weighted = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
+
+    # 3. 最大值灰度法：取RGB三个通道的最大值
+    gray_max = np.max(image, axis=2).astype(np.uint8)
+
+    # 4.单一通道法，直接将某个分量，如b赋值给灰度图
+    gray_r=r  #单一通道本身是灰度图
+    gray_g=g  #单一通道本身是灰度图
+    gray_b=b  #单一通道本身是灰度图
+
+    # 创建3x2的子图布局
+    plt.figure(figsize=(12, 10))
+    
+    # 显示原图
+    plt.subplot(4, 2, 1)
+    plt.imshow(image_rgb)
+    plt.title('orignal')
+    plt.axis('off')
+    
+    # 显示均值灰度图
+    plt.subplot(4, 2, 2)
+    plt.imshow(gray_mean, cmap='gray')
+    plt.title('mean gray')
+    plt.axis('off')
+    
+    # 显示加权灰度图
+    plt.subplot(4, 2,3)
+    plt.imshow(gray_weighted, cmap='gray')
+    plt.title('(BT.601) gray')
+    plt.axis('off')
+    
+    # 显示最大亮点灰度图
+    plt.subplot(4, 2, 4)
+    plt.imshow(gray_max, cmap='gray')
+    plt.title('max gray')
+    plt.axis('off')
+
+     # 显示绿通道灰度图
+    plt.subplot(4, 2, 5)
+    plt.imshow(gray_g, cmap='gray')
+    plt.title('gray g')
+    plt.axis('off')
+
+     # 显示蓝色通道灰度图
+    plt.subplot(4, 2,6)
+    plt.imshow(gray_b, cmap='gray')
+    plt.title('gray b')
+    plt.axis('off')
+
+   # 显示红色通道灰度图
+    plt.subplot(4, 2, 7)
+    plt.imshow(gray_r, cmap='gray')
+    plt.title('gray r')
+    plt.axis('off')
+
+    # 调整子图间距
+    plt.tight_layout()
+    plt.show()
