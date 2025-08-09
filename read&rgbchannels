@@ -1,0 +1,63 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+# 读取图像
+#image = cv2.imread('test.jpg')  # 替换为你的图像路径
+image = cv2.imread('IMG_0116.jpeg')  # 替换为你的图像路径
+
+# 检查图像是否成功加载
+if image is None:
+    print("错误：无法读取图像，请检查文件路径")
+else:
+    # 将BGR图像转换为RGB（Matplotlib使用RGB）
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+    #获取图像分辨率、通道
+    height, width, channels = image.shape
+  #  print(f"image size: width={width}, height={height}, channel={channels}\n")
+    
+    # 分离颜色通道（OpenCV使用BGR顺序）
+    b, g, r = cv2.split(image)
+    
+    # 创建全黑矩阵（用于零填充）
+    zeros = np.zeros_like(b)
+    
+# 构建各颜色分量的图像（BGR格式）
+    red_component = cv2.merge([zeros, zeros, r])       # 红色分量
+    green_component = cv2.merge([zeros, g, zeros])    # 绿色分量
+    blue_component = cv2.merge([b, zeros, zeros])     # 蓝色分量
+
+    # 转换为RGB格式用于显示
+    red_rgb = cv2.cvtColor(red_component, cv2.COLOR_BGR2RGB)
+    green_rgb = cv2.cvtColor(green_component, cv2.COLOR_BGR2RGB)
+    blue_rgb = cv2.cvtColor(blue_component, cv2.COLOR_BGR2RGB)
+
+    #打印红色分量
+    print("r channel")
+    print(r)
+    
+    # 创建2x2的子图布局, 画布大小为1200x1000
+    plt.figure(figsize=(12, 10))
+
+    # 显示原图
+    plt.subplot(2, 2, 1)  #2行，2列，第1个窗口
+    plt.imshow(image_rgb)
+    plt.title('original')
+    plt.axis('off')
+
+    plt.subplot(2, 2, 2)  #2行，2列，第2个窗口
+    plt.imshow(red_rgb)
+    plt.title('red')
+    plt.axis('off')
+
+    plt.subplot(2, 2, 3)  #2行，2列，第3个窗口
+    plt.imshow(green_rgb)
+    plt.title('green')
+    plt.axis('off')
+
+    plt.subplot(2, 2, 4)  #2行，2列，第3个窗口
+    plt.imshow(blue_rgb)
+    plt.title('blue')
+    plt.axis('off')
