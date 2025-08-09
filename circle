@@ -1,0 +1,115 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+# 读取图像
+image = cv2.imread('dianpian_noisy.jpg') 
+    
+# 检查图像是否成功加载
+if image is None: 
+    print("错误：无法读取图像，请检查文件路径")
+else:
+    # 将图像转换为灰度图（大多数边缘检测算子需要灰度图）
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+
+   # 3. 图像预处理
+    # 3.1 高斯模糊降噪
+    blurred = cv2.GaussianBlur(gray, (9, 9), 2)
+      
+    # 5. 边缘检测
+    edges = cv2.Canny(blurred, 50, 150) 
+
+
+    # 使用霍夫圆变换检测圆
+    circles = cv2.HoughCircles(
+        edges,#blurred, 
+        cv2.HOUGH_GRADIENT, 
+        dp=1.2,            # 累加器分辨率（越大检测速度越慢，精度越高）
+        minDist=30,         # 圆之间的最小距离（像素）
+        param1=50,          # Canny边缘检测的高阈值
+        param2=30,          # 累加器阈值（越小检测的圆越多，假圆也越多）
+        minRadius=40,       # 最小半径
+        maxRadius=90       # 最大半径
+    )
+    
+    # 创建结果图像（带圆标记）
+    result_image = image.copy()
+    
+    # 初始化圆心坐标列表
+    centers = []
+    
+    # 如果检测到圆
+    if circles is not None:
+        # 将坐标和半径转换为整数
+        circles = np.round(circles[0, :]).astype("int")
+        
+        print(f"recg {len(circles)} circle")
+        
+        # 遍历所有检测到的圆
+        for i, (x, y, r) in enumerate(circles):
+            # 绘制外圆
+            cv2.circle(result_image, (x, y), r, (0, 255, 0), 4)
+            
+            # 绘制圆心
+            cv2.circle(result_image, (x, y), 5, (0, 0, 255), -1)
+            
+            # 添加圆心坐标标签
+            cv2.putText(result_image, f"({x},{y})", (x + 10, y - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+            
+            # 添加圆编号
+            cv2.putText(result_image, f"Circle {i+1}", (x - r, y - r - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
+            
+            # 保存圆心坐标
+            centers.append((x, y))
+            
+            print(f"circle {i+1}: center pos ({x}, {y}), r: {r} pixel")
+    else:
+        print("no circel")
+
+    
+        
+    # 将原始BGR图像转换为RGB（Matplotlib使用RGB）
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    result_rgb = cv2.cvtColor(result_image, cv2.COLOR_BGR2RGB)
+    
+    # 创建2x3的子图布局
+    plt.figure(figsize=(18, 12))
+    
+    # 显示原图
+    plt.subplot(2, 3, 1)
+    plt.imshow(image_rgb)
+    plt.title('Orignal')
+    plt.axis('off')
+
+    # 显示中间结果
+    plt.subplot(2, 3, 2)
+    plt.imshow(gray, cmap='gray')
+    plt.title('gray')
+    plt.axis('off')
+
+    plt.subplot(2, 3, 3)
+    plt.imshow(blurred, cmap='gray')
+    plt.title('blurred')
+    plt.axis('off')
+
+
+    plt.subplot(2, 3, 4)
+    plt.imshow(edges, cmap='gray')
+    plt.title('edges')
+    plt.axis('off')
+
+    # 显示识别结果
+    plt.subplot(2, 3, 5)
+    plt.imshow(result_rgb)
+    plt.title('output')
+    plt.axis('off')
+    
+    # 调整子图间距
+    plt.tight_layout()
+    plt.show()
+    
+  
